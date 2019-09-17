@@ -19,3 +19,14 @@ npm run start
 ## links
 https://www.npmjs.com/package/sqlite3
 https://www.npmjs.com/package/deltachat-node
+
+
+## wish list:
+
+- Delay ( what about continue after bot crash if delay didn't fire)
+- Random choices
+
+
+## next project advanced imersive bot
+- Multiple accounts (that bot uses to simulate different persons)
+- text parsing to unstand player intention from?
