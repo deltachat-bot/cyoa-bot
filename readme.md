@@ -24,7 +24,8 @@ https://www.npmjs.com/package/deltachat-node
 ## wish list:
 
 - Delay ( what about continue after bot crash if delay didn't fire)
-- Random choices
+- Random choices in choices
+- save story as json with a json scheme?
 
 
 ## next project advanced imersive bot
