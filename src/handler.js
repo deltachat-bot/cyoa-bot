@@ -1,6 +1,7 @@
 const { getEntry, setEntry } = require('./database')
 const story = require('./story')
 
+const delay = async (millis) => await new Promise ((res, rej) => setTimeout(res, millis)) ;
 
 const handleDCMessage = async (dc, chatId, msgId) => {
 
@@ -41,8 +42,9 @@ const handleDCMessage = async (dc, chatId, msgId) => {
         return;
     }
 
-    const sendElement = (storyElem) => {
+    const sendElement = async (storyElem) => {
         DCsendMessage(storyElem.message);
+        await delay(200);
         var choicesMessage = `Your choices:\n` + storyElem.choices.map((choice, index)=>`${index+1}: ${choice.label}`).join('\n');
         DCsendMessage(choicesMessage);
     }
