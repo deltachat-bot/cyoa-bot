@@ -13,7 +13,7 @@ module.exports = {
         ]
     },
     "part_3": {
-        message: "You must trust me. I need your help!",
+        message: "I need your help!\n I need you to trust me on this one!",
         choices: [
             { label: "What's wrong?", goto: "part_5" },
             { label: "I dont want to help you. I dont know you. Bye!", goto: "part_4" },
