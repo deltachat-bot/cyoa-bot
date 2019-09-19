@@ -11,12 +11,8 @@ const handleDCMessage = async (dc, chatId, msgId) => {
     const message = dc.getMessage(msgId);
     if (!message || message.isInfo()) return;
     const sender = dc.getContact(message.getFromId());
-    (() => {
-        console.log(chat.getType());
-        console.log(chat.toJson());
-        console.log("chatId, msgId", chatId, msgId);
-        console.log(message.getText());
-    })(); //debug code
+    
+    console.log("got a message:", message.getText());
 
     // IDEA: handle comands? for multiple stories you can play
 
@@ -61,7 +57,7 @@ const handleDCMessage = async (dc, chatId, msgId) => {
   
         if(Number.isNaN(userinput)){
             DCsendMessage(`(Send the number of the option you want to continue)`)
-        } else if (userinput > currentStoryElement.choices.length) {
+        } else if (userinput > currentStoryElement.choices.length || userinput <= 0) {
             DCsendMessage(`(Number out of range, please select one of the options)`)
         } else {
             const choice = currentStoryElement.choices[userinput-1];
