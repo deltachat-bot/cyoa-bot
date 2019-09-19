@@ -44,7 +44,7 @@ const handleDCMessage = async (dc, chatId, msgId) => {
 
     const sendElement = async (storyElem) => {
         DCsendMessage(storyElem.message);
-        await delay(200);
+        await delay(1200);
         var choicesMessage = `Your choices:\n` + storyElem.choices.map((choice, index)=>`${index+1}: ${choice.label}`).join('\n');
         DCsendMessage(choicesMessage);
     }
