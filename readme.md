@@ -1,5 +1,14 @@
 # Choose Your Own Adventure Story Bot
 
+## Configuration:
+
+create a json file with the name `.cyoa-dcrc` (no extra filename extention):
+```json
+{
+    "email_address": "email",
+    "email_password": "password"
+}
+```
 
 ## How to run the bot:
 
