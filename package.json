@@ -19,6 +19,7 @@
   "homepage": "https://github.com/Simon-Laux/cyoa-bot#readme",
   "dependencies": {
     "deltachat-node": "^1.0.0-alpha.5",
+    "inkjs": "git+https://github.com/Simon-Laux/inkjs.git",
     "rc": "^1.2.8",
     "sqlite3": "^4.1.0"
   }
