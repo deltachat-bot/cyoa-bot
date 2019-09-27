@@ -32,7 +32,7 @@ dc.on('DC_EVENT_MSGS_CHANGED', (chatId, msgId) => {
     }
 })
 dc.on('DC_EVENT_INCOMING_MSG', (...args) => handleDCMessage(dc, ...args))
-dc.on('ALL', console.log.bind(null, 'core |'))// for debugging
+// dc.on('ALL', console.log.bind(null, 'core |'))// for debugging
 
 dc.open(path.join(__dirname, '../data'), () => {
     if (!dc.isConfigured()) {

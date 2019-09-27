@@ -1,7 +1,9 @@
 const { getEntry, setEntry } = require('./database')
-const story = require('./story')
+const { Story, StoryState } = require('inkjs');
+const path = require('path')
+const fs = require('fs')
 
-const delay = async (millis) => await new Promise ((res, rej) => setTimeout(res, millis)) ;
+const delay = async (millis) => await new Promise((res, rej) => setTimeout(res, millis));
 
 const handleDCMessage = async (dc, chatId, msgId) => {
 
@@ -11,75 +13,85 @@ const handleDCMessage = async (dc, chatId, msgId) => {
     const message = dc.getMessage(msgId);
     if (!message || message.isInfo()) return;
     const sender = dc.getContact(message.getFromId());
-    (() => {
-        console.log(chat.getType());
-        console.log(chat.toJson());
-        console.log("chatId, msgId", chatId, msgId);
-        console.log(message.getText());
-    })(); //debug code
 
     // IDEA: handle comands? for multiple stories you can play
+    if( message.getText() == "open"){
+        await setEntry(chatId, "intercept.ink.json", "");
+    }
 
     // lockup chat id
     let entry = await getEntry(chatId);
-    let just_started = false;
-    if(!entry){
+
+    if (!entry) {
         // entry doesn't exist - creating it
-        await setEntry(chatId, "name of story", "part_1");
+        await setEntry(chatId, "intercept.ink.json", "");
         entry = await getEntry(chatId);
-        just_started = true;
-        console.log("user just started")
     }
 
-    // 1. Check where the user/chatID is in the story (progress/stage) from db
-    const stage = entry.stage;
-
-    // 2. get the story element
-    const currentStoryElement = story[stage];
-    if(!currentStoryElement){
-        console.error(`story_element '${stage}' not defined`, {entry, currentStoryElement});
-        DCsendMessage(`Internal Error, please contact the developers of this bot. Your ID: ${chatId}`)
+    if (!entry.story){
+        DCsendMessage("No story selected")
+        dc.markNoticedChat(chatId);
         return;
     }
 
-    const sendElement = async (storyElem) => {
-        DCsendMessage(storyElem.message);
-        await delay(1200);
-        var choicesMessage = `Your choices:\n` + storyElem.choices.map((choice, index)=>`${index+1}: ${choice.label}`).join('\n');
-        DCsendMessage(choicesMessage);
+    // 1. Load story
+    // console.time("load ink")
+    var inkFile = fs.readFileSync(path.join('./stories', entry.story), 'UTF-8').replace(/^\uFEFF/, '');
+    // console.timeEnd("load ink")
+    // console.time("load")
+    var myStory = new Story(inkFile);
+    // console.timeEnd("load")
+
+    // 2.Load save data
+    let just_started = false;
+    if (entry.data) {
+        myStory.state.LoadJson(entry.data);
+    } else {
+        just_started = true
     }
 
-    console.log({just_started})
+    const sendElement = async () => {
+        let replytext = ""
+        while (myStory.canContinue) {
+            replytext += myStory.Continue();
+        }
+        replytext += "\n"
+        if (myStory.currentChoices.length > 0) {
+            for (var i = 0; i < myStory.currentChoices.length; ++i) {
+                var choice = myStory.currentChoices[i];
+                replytext +=('\n'+(i + 1) + ". " + choice.text );
+            }
+        }
+        DCsendMessage(replytext)
+        await setEntry(chatId, entry.story, myStory.state.ToJson());
+    }
 
-    if(just_started){
-        sendElement(currentStoryElement)
+    const end = async () => {
+        await setEntry(chatId, "", "")
+        DCsendMessage("The end - please select new story")
+    }
+
+    if (just_started) {
+        sendElement()
+
     } else {
         // 3. compare to choices
         const userinput = Number.parseInt(message.getText());
 
-        console.log({userinput, cl: currentStoryElement.choices})
-  
-        if(Number.isNaN(userinput)){
+        if (Number.isNaN(userinput)) {
             DCsendMessage(`(Send the number of the option you want to continue)`)
-        } else if (userinput > currentStoryElement.choices.length) {
+        } else if (userinput > myStory.currentChoices.length) {
             DCsendMessage(`(Number out of range, please select one of the options)`)
         } else {
-            const choice = currentStoryElement.choices[userinput-1];
-            if(!choice){
-                console.error(`choice '${userinput}' in stage '${stage}' not defined`, {entry, story_element: currentStoryElement});
-                DCsendMessage(`Internal Error, please contact the developers of this bot. Your ID: ${chatId}`)
-                return;
+            try {
+                myStory.ChooseChoiceIndex(parseInt(userinput) - 1);
+            } catch (error) {
+                DCsendMessage(`Error: ${error.message}`)
             }
-            // 4. send answer to player and advance in db
-            await setEntry(chatId, entry.story, choice.goto);
-            const nextStoryElement = story[choice.goto];
-            if(!nextStoryElement){
-                console.error(`story_element '${choice.goto}' not defined`, {entry, nextStoryElement});
-                DCsendMessage(`Internal Error, please contact the developers of this bot. Your ID: ${chatId}`)
-                return;
-            }
-            sendElement(nextStoryElement);
+            if (!myStory.canContinue && myStory.currentChoices.length === 0) end();
+            sendElement()
         }
+
     }
 
     dc.markNoticedChat(chatId); // mark message as read

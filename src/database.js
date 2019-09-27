@@ -6,13 +6,17 @@ var db;
 function init_db(filename) {
     db = new sqlite3.Database(filename);
     db.serialize(function () {
-        db.run("CREATE TABLE IF NOT EXISTS games (chatId INTEGER PRIMARY KEY, story TEXT, stage TEXT);");
+        db.run("CREATE TABLE IF NOT EXISTS games2 (chatId INTEGER PRIMARY KEY, story TEXT, data TEXT);");
     })
 }
-
+/**
+ * 
+ * @param {number} chatId
+ * @returns {{chatId:number, story:string, data:string}}
+ */
 async function getEntry(chatId) {
     return await new Promise((res, rej) => {
-        db.get(`SELECT * FROM games WHERE chatId = ${Number(chatId)} `, (err, result) => {
+        db.get(`SELECT * FROM games2 WHERE chatId = ${Number(chatId)} `, (err, result) => {
             if (err) {
                 rej(err);
             } else {
@@ -22,16 +26,16 @@ async function getEntry(chatId) {
     });
 }
 
-async function setEntry(chatId, story, stage) {
+async function setEntry(chatId, story, data) {
     const entry = await getEntry(chatId);
     if (!entry) {
-        await insertEntry(chatId, story, stage)
+        await insertEntry(chatId, story, data)
     } else {
         await new Promise((res, rej) => {
-            db.run("UPDATE games SET story = $story, stage = $stage WHERE chatId = $chatId", {
+            db.run("UPDATE games2 SET story = $story, data = $data WHERE chatId = $chatId", {
                 $chatId: chatId,
                 $story: story,
-                $stage: stage
+                $data: data
             }, (err) => {
                 if (err) {
                     rej(err);
@@ -44,12 +48,12 @@ async function setEntry(chatId, story, stage) {
 
 }
 
-async function insertEntry(chatId, story, stage) {
+async function insertEntry(chatId, story, data) {
     return await new Promise((res, rej) => {
-        db.run("INSERT INTO games (chatId, story, stage) VALUES ($chatId, $story, $stage)", {
+        db.run("INSERT INTO games2 (chatId, story, data) VALUES ($chatId, $story, $data)", {
             $chatId: chatId,
             $story: story,
-            $stage: stage
+            $data: data
         }, (err) => {
             if (err) {
                 rej(err);
