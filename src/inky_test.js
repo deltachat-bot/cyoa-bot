@@ -4,7 +4,7 @@ var readline = require('readline');
 
 //load the ink file
 console.time("load ink")
-var inkFile = fs.readFileSync('./src/intercept.ink.json', 'UTF-8').replace(/^\uFEFF/, '');
+var inkFile = fs.readFileSync('./stories/intercept.ink.json', 'UTF-8').replace(/^\uFEFF/, '');
 console.timeEnd("load ink")
 //create a new story
 console.time("load")
